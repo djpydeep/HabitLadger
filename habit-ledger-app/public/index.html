@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#E8E1D0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Habit Ledger">
+<meta name="format-detection" content="telephone=no">
+<title>Habit Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Serif+4:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #E8E1D0;
+    --paper-card: #F1EBDC;
+    --ink: #22303C;
+    --ink-light: #56636D;
+    --rule: #C3B8A0;
+    --moss: #4C6B4F;
+    --rust: #A8402F;
+    --gold: #B8873A;
+    --plum: #6B4C63;
+    --teal: #2F6B66;
+    --ochre: #C97F2A;
+    --slate: #556270;
+    --shadow: rgba(34,48,60,0.12);
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html{ -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+  body{
+    margin:0;
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(
+      to bottom, transparent, transparent 30px, rgba(34,48,60,0.055) 31px
+    );
+    color: var(--ink);
+    font-family: 'Source Serif 4', serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 40px 20px 80px;
+    padding-top: max(40px, env(safe-area-inset-top));
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(80px, env(safe-area-inset-bottom));
+    overscroll-behavior-y: contain;
+  }
+
+  ::selection{ background: var(--gold); color: var(--paper); }
+  a, button, input{ font-family: inherit; }
+  button{ touch-action: manipulation; }
+  *:focus-visible{ outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  .wrap{ max-width: 880px; margin: 0 auto; }
+  .hidden{ display: none !important; }
+
+  /* ---------- Auth screen ---------- */
+  .auth-wrap{
+    max-width: 420px;
+    margin: 60px auto;
+  }
+  .auth-card{
+    background: var(--paper-card);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 30px 28px;
+    box-shadow: 0 1px 0 var(--shadow);
+  }
+  .auth-eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .auth-card h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 30px;
+    margin: 0 0 4px;
+  }
+  .auth-card .tagline{
+    color: var(--ink-light);
+    font-style: italic;
+    font-size: 15px;
+    margin: 0 0 24px;
+  }
+  .auth-tabs{
+    display:flex;
+    border-bottom: 2px solid var(--rule);
+    margin-bottom: 22px;
+  }
+  .auth-tab{
+    flex:1;
+    background:none;
+    border:none;
+    padding: 10px 4px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    cursor:pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+  }
+  .auth-tab.active{ color: var(--ink); border-bottom-color: var(--rust); }
+
+  .auth-field{ display:flex; flex-direction:column; gap:6px; margin-bottom: 16px; }
+  .auth-field label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-light);
+  }
+  .auth-field input{
+    border:none; border-bottom: 1.5px solid var(--ink);
+    background: transparent; padding: 10px 2px; font-size: 16px; color: var(--ink);
+  }
+
+  .auth-submit{
+    width: 100%;
+    background: var(--ink); color: var(--paper); border:none; border-radius:3px;
+    padding: 13px 20px; min-height: 44px;
+    font-family:'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.03em;
+    cursor:pointer; transition: transform .12s ease, background .12s ease;
+    margin-top: 4px;
+  }
+  .auth-submit:hover{ background: var(--rust); }
+  .auth-submit:active{ transform: scale(0.98); background: var(--rust); }
+  .auth-submit:disabled{ opacity: 0.6; cursor: default; }
+
+  .auth-error{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--rust);
+    border: 1.5px solid var(--rust);
+    border-radius: 3px;
+    padding: 8px 10px;
+    margin-bottom: 16px;
+  }
+  .auth-hint{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--ink-light); margin-top: -8px; margin-bottom: 16px;
+  }
+
+  /* ---------- App shell ---------- */
+  header.masthead{ padding-bottom: 22px; border-bottom: 3px double var(--ink); margin-bottom: 30px; }
+  .masthead-top{ display:flex; justify-content: space-between; align-items:flex-start; gap: 14px; }
+  header.masthead .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-light); margin-bottom: 6px;
+  }
+  h1{ font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:700; font-size: clamp(32px, 5vw, 46px); margin: 0 0 6px; letter-spacing: -0.01em; }
+  .tagline{ color: var(--ink-light); font-style: italic; font-size: 16px; margin: 0 0 18px; }
+
+  .account-chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--ink-light);
+    text-align:right; flex-shrink: 0;
+  }
+  .account-chip .who{ color: var(--ink); font-weight: 600; display:block; margin-bottom: 4px; }
+  .signout-btn{
+    background:none; border: none; color: var(--rust);
+    font-family:'IBM Plex Mono', monospace; font-size: 12px;
+    cursor:pointer; padding: 0; text-decoration: underline;
+  }
+
+  .sync-status{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-light);
+    margin-top: 4px;
+  }
+  .sync-status.error{ color: var(--rust); }
+
+  .summary-line{ display:flex; flex-wrap: wrap; gap: 8px 22px; font-family:'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink); margin-top: 14px; }
+  .summary-line span b{ color: var(--rust); font-weight: 600; }
+
+  section{ margin-bottom: 40px; }
+  h2.section-title{ font-family:'Fraunces', serif; font-weight:600; font-size: 20px; margin: 0 0 14px; display:flex; align-items: baseline; gap: 10px; }
+  h2.section-title .count{ font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-light); font-weight: 400; }
+
+  .add-form{ background: var(--paper-card); border: 1px solid var(--rule); border-radius: 4px; padding: 18px 20px; display:flex; flex-wrap: wrap; gap: 14px; align-items:flex-end; box-shadow: 0 1px 0 var(--shadow); }
+  .field-group{ display:flex; flex-direction: column; gap:6px; flex: 1 1 220px; }
+  .field-group label{ font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-light); }
+  .field-group input[type=text]{ border:none; border-bottom: 1.5px solid var(--ink); background: transparent; padding: 10px 2px; font-size: 16px; color: var(--ink); min-height: 22px; }
+  .field-group input[type=text]::placeholder{ color: #9a917c; font-style: italic; }
+
+  .swatches{ display:flex; gap:10px; flex-wrap: wrap; }
+  .swatch{ width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor:pointer; padding:0; touch-action: manipulation; }
+  .swatch.selected{ border-color: var(--ink); transform: scale(1.12); }
+  .swatch:active{ transform: scale(0.92); }
+
+  .btn-add{ background: var(--ink); color: var(--paper); border:none; border-radius:3px; padding: 13px 20px; min-height: 44px; font-family:'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.03em; cursor:pointer; touch-action: manipulation; transition: transform .12s ease, background .12s ease; }
+  .btn-add:hover{ background: var(--rust); }
+  .btn-add:active{ transform: scale(0.97); background: var(--rust); }
+
+  .checklist{ background: var(--paper-card); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+  .check-row{ display:flex; align-items:center; gap: 14px; padding: 15px 18px; min-height: 44px; border-bottom: 1px solid var(--rule); cursor:pointer; position: relative; user-select:none; touch-action: manipulation; }
+  .check-row:last-child{ border-bottom:none; }
+  .check-row:hover{ background: rgba(34,48,60,0.04); }
+  .check-row:active{ background: rgba(34,48,60,0.07); }
+
+  .box{ width: 22px; height:22px; border: 2px solid var(--ink); border-radius: 3px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background: var(--paper); }
+  .box.done{ background: var(--moss); border-color: var(--moss); }
+  .box.done::after{ content:"✓"; color: var(--paper-card); font-size: 13px; font-weight: 700; }
+
+  .dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .row-name{ flex:1; font-size: 16px; transition: color .15s ease; }
+  .row-name.done{ color: var(--ink-light); text-decoration: line-through; text-decoration-color: var(--rule); }
+  .row-streak{ font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-light); flex-shrink:0; }
+
+  .stamp{ position:absolute; right: 60px; font-family:'IBM Plex Mono', monospace; font-size: 11px; font-weight:600; letter-spacing: 0.06em; color: var(--rust); border: 1.5px solid var(--rust); border-radius: 3px; padding: 2px 8px; transform: rotate(-7deg) scale(1); opacity: 1; pointer-events: none; animation: stampin .28s ease; }
+  @keyframes stampin{ 0%{ transform: rotate(-7deg) scale(1.8); opacity:0; } 100%{ transform: rotate(-7deg) scale(1); opacity:1; } }
+  @media (prefers-reduced-motion: reduce){ .stamp{ animation: none; } }
+
+  .empty-note{ padding: 26px 20px; color: var(--ink-light); font-style: italic; font-size: 15px; }
+
+  .cards{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+  .card{ background: var(--paper-card); border: 1px solid var(--rule); border-radius: 4px; padding: 16px 18px 18px; }
+  .card-head{ display:flex; align-items:center; gap: 9px; margin-bottom: 10px; }
+  .card-head .dot{ width:11px; height:11px; }
+  .card-head .name{ font-family:'Fraunces', serif; font-weight:600; font-size: 17px; flex:1; }
+  .del-btn{ background:none; border:none; color: var(--ink-light); font-size: 18px; cursor:pointer; line-height:1; padding: 10px; margin: -10px -6px -10px 0; touch-action: manipulation; }
+  .del-btn:hover{ color: var(--rust); }
+  .del-btn:active{ color: var(--rust); transform: scale(0.92); }
+
+  .card-stats{ font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-light); margin-bottom: 12px; display:flex; gap: 14px; flex-wrap: wrap; }
+  .card-stats b{ color: var(--ink); font-weight: 600; }
+
+  .heatmap-scroll{ overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .heatmap{ display:grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 3px; width: max-content; }
+  .cell{ width: 12px; height: 12px; border-radius: 2px; background: rgba(34,48,60,0.08); }
+  .cell.future{ background: transparent; }
+
+  footer{ max-width: 880px; margin: 40px auto 0; font-family:'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-light); text-align:center; }
+
+  @media (max-width: 520px){
+    body{ padding: 26px 14px 60px; }
+    body{ padding-top: max(26px, env(safe-area-inset-top)); }
+    body{ padding-left: max(14px, env(safe-area-inset-left)); }
+    body{ padding-right: max(14px, env(safe-area-inset-right)); }
+    h1{ font-size: 30px; }
+    .add-form{ flex-direction: column; align-items: stretch; padding: 16px; }
+    .btn-add{ width: 100%; }
+    .row-streak{ display:none; }
+    .stamp{ right: 44px; }
+    .summary-line{ font-size: 12px; gap: 6px 16px; }
+    .check-row{ padding: 15px 14px; }
+    .card{ padding: 14px 14px 16px; }
+    .masthead-top{ flex-direction: column; }
+    .account-chip{ text-align: left; }
+    .auth-wrap{ margin: 30px auto; }
+    .auth-card{ padding: 24px 20px; }
+  }
+  @media (max-width: 400px){ .cards{ grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+  <!-- ============ AUTH SCREEN ============ -->
+  <div class="auth-wrap" id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-eyebrow">Habit Ledger</div>
+      <h1 id="auth-title">Sign In</h1>
+      <p class="tagline">Every day, an entry. Every streak, a balance.</p>
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" data-mode="login">Sign In</button>
+        <button type="button" class="auth-tab" data-mode="signup">Create Account</button>
+      </div>
+
+      <div id="auth-error-slot"></div>
+
+      <form id="auth-form">
+        <div class="auth-field hidden" id="name-field">
+          <label for="auth-name">Name</label>
+          <input type="text" id="auth-name" autocomplete="name" placeholder="Your name">
+        </div>
+        <div class="auth-field">
+          <label for="auth-email">Email</label>
+          <input type="email" id="auth-email" autocomplete="username" placeholder="you@example.com" required>
+        </div>
+        <div class="auth-field">
+          <label for="auth-password">Password</label>
+          <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" required>
+        </div>
+        <div class="auth-hint hidden" id="password-hint">At least 8 characters.</div>
+
+        <button type="submit" class="auth-submit" id="auth-submit-btn">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ APP ============ -->
+  <div class="wrap hidden" id="app-screen">
+
+    <header class="masthead">
+      <div class="masthead-top">
+        <div>
+          <div class="eyebrow" id="today-eyebrow">Ledger opened —</div>
+          <h1>Habit Ledger</h1>
+          <p class="tagline">Every day, an entry. Every streak, a balance.</p>
+        </div>
+        <div class="account-chip">
+          <span class="who" id="account-name"></span>
+          <button class="signout-btn" id="signout-btn">Sign out</button>
+          <div class="sync-status" id="sync-status"></div>
+        </div>
+      </div>
+      <div class="summary-line" id="summary-line"></div>
+    </header>
+
+    <section>
+      <h2 class="section-title">New Entry</h2>
+      <form class="add-form" id="add-form">
+        <div class="field-group" style="flex:2 1 260px;">
+          <label for="habit-name">Habit name</label>
+          <input type="text" id="habit-name" placeholder="e.g. Morning walk" maxlength="60" autocomplete="off">
+        </div>
+        <div class="field-group" style="flex:1 1 200px;">
+          <label>Colour</label>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <button type="submit" class="btn-add">Add Habit</button>
+      </form>
+    </section>
+
+    <section>
+      <h2 class="section-title">Today <span class="count" id="today-date-label"></span></h2>
+      <div class="checklist" id="checklist"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Accounts <span class="count" id="habit-count-label"></span></h2>
+      <div class="cards" id="cards"></div>
+    </section>
+
+  </div>
+
+  <footer id="app-footer" class="hidden">Synced to your account — open this page on any device and sign in to see your habits.</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  const COLORS = [
+    {name:'Moss',  hex:'#4C6B4F'}, {name:'Rust',  hex:'#A8402F'},
+    {name:'Gold',  hex:'#B8873A'}, {name:'Ink',   hex:'#22303C'},
+    {name:'Plum',  hex:'#6B4C63'}, {name:'Teal',  hex:'#2F6B66'},
+    {name:'Ochre', hex:'#C97F2A'}, {name:'Slate', hex:'#556270'}
+  ];
+
+  const TOKEN_KEY = 'habit-ledger-token';
+  const USER_KEY = 'habit-ledger-user';
+
+  let state = { habits: [], completions: {} };
+  let selectedColor = COLORS[0].hex;
+  let authMode = 'login';
+  let currentUser = null;
+  let saveTimer = null;
+
+  // ---------- API ----------
+  async function api(path, { method = 'GET', body, auth = true } = {}){
+    const headers = { 'Content-Type': 'application/json' };
+    if (auth) {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+    }
+    const res = await fetch(path, {
+      method, headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || 'Something went wrong.');
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
+
+  // ---------- Date helpers ----------
+  function fmt(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+  function todayStr(){ return fmt(new Date()); }
+  function addDays(dateStr, n){ const d = new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+n); return fmt(d); }
+  function humanDate(dateStr){ const d = new Date(dateStr+'T00:00:00'); return d.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }); }
+
+  // ---------- Stats ----------
+  function completedDatesSet(habitId){ return new Set(Object.keys(state.completions[habitId] || {})); }
+
+  function currentStreak(habitId){
+    const set = completedDatesSet(habitId);
+    let d = new Date(); let ds = fmt(d);
+    if (!set.has(ds)) d.setDate(d.getDate()-1);
+    let streak = 0;
+    while(true){ ds = fmt(d); if (set.has(ds)) { streak++; d.setDate(d.getDate()-1); } else break; }
+    return streak;
+  }
+
+  function bestStreak(habitId){
+    const set = completedDatesSet(habitId);
+    if (set.size === 0) return 0;
+    const dates = Array.from(set).sort();
+    let best=1, cur=1;
+    for (let i=1;i<dates.length;i++){
+      const prev = new Date(dates[i-1]+'T00:00:00'), curD = new Date(dates[i]+'T00:00:00');
+      const diff = Math.round((curD-prev)/86400000);
+      if (diff===1){ cur++; best=Math.max(best,cur); } else if (diff>1){ cur=1; }
+    }
+    return best;
+  }
+
+  function weekPercent(habitId){
+    const set = completedDatesSet(habitId);
+    let count=0, d=todayStr();
+    for (let i=0;i<7;i++){ if (set.has(d)) count++; d = addDays(d,-1); }
+    return Math.round((count/7)*100);
+  }
+
+  // ---------- Rendering ----------
+  function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  function renderSwatches(){
+    const el = document.getElementById('swatches');
+    el.innerHTML = COLORS.map(c => `<button type="button" class="swatch${c.hex===selectedColor?' selected':''}" style="background:${c.hex}" data-hex="${c.hex}" title="${c.name}" aria-label="${c.name}"></button>`).join('');
+    el.querySelectorAll('.swatch').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ selectedColor = btn.dataset.hex; renderSwatches(); });
+    });
+  }
+
+  function renderMasthead(){
+    document.getElementById('today-eyebrow').textContent = 'Ledger opened — ' + humanDate(todayStr());
+    document.getElementById('today-date-label').textContent = humanDate(todayStr());
+    document.getElementById('habit-count-label').textContent = state.habits.length ? `(${state.habits.length} tracked)` : '';
+    document.getElementById('account-name').textContent = currentUser ? currentUser.name : '';
+
+    const total = state.habits.length, t = todayStr();
+    const doneToday = state.habits.filter(h => (state.completions[h.id]||{})[t]).length;
+    const longest = state.habits.reduce((m,h)=>Math.max(m, currentStreak(h.id)), 0);
+
+    const summary = document.getElementById('summary-line');
+    summary.innerHTML = total === 0
+      ? `<span>No accounts opened yet.</span>`
+      : `<span>Today: <b>${doneToday}/${total}</b> marked</span><span>Longest active streak: <b>${longest}</b> day${longest===1?'':'s'}</span><span>Habits tracked: <b>${total}</b></span>`;
+  }
+
+  function renderChecklist(){
+    const el = document.getElementById('checklist');
+    if (state.habits.length === 0){
+      el.innerHTML = `<div class="empty-note">No accounts opened yet — add your first habit above to start the ledger.</div>`;
+      return;
+    }
+    const t = todayStr();
+    el.innerHTML = state.habits.map(h=>{
+      const done = !!(state.completions[h.id]||{})[t];
+      const streak = currentStreak(h.id);
+      return `<div class="check-row" data-id="${h.id}">
+        <div class="box${done?' done':''}"></div>
+        <span class="dot" style="background:${h.color}"></span>
+        <span class="row-name${done?' done':''}">${escapeHtml(h.name)}</span>
+        <span class="row-streak">${streak>0 ? streak+' day streak' : ''}</span>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.check-row').forEach(row=>{
+      row.addEventListener('click', ()=> toggleToday(row.dataset.id, row));
+    });
+  }
+
+  function renderHeatmap(habitId, color){
+    const weeks = 12, totalCells = weeks*7;
+    const t = new Date();
+    const todayDow = t.getDay();
+    const end = new Date(t); end.setDate(end.getDate() - todayDow);
+    const start = new Date(end); start.setDate(start.getDate() - (weeks-1)*7);
+
+    const set = completedDatesSet(habitId);
+    let cells = '';
+    for (let i=0;i<totalCells;i++){
+      const d = new Date(start); d.setDate(d.getDate()+i);
+      const ds = fmt(d);
+      if (d > t){ cells += `<div class="cell future"></div>`; continue; }
+      const done = set.has(ds);
+      cells += `<div class="cell" style="background:${done?color:'rgba(34,48,60,0.08)'}" title="${ds}${done?' — done':''}"></div>`;
+    }
+    return `<div class="heatmap-scroll"><div class="heatmap">${cells}</div></div>`;
+  }
+
+  function renderCards(){
+    const el = document.getElementById('cards');
+    if (state.habits.length === 0){ el.innerHTML = ''; return; }
+    el.innerHTML = state.habits.map(h=>{
+      const streak = currentStreak(h.id), best = bestStreak(h.id), week = weekPercent(h.id);
+      return `<div class="card">
+        <div class="card-head">
+          <span class="dot" style="background:${h.color}"></span>
+          <span class="name">${escapeHtml(h.name)}</span>
+          <button class="del-btn" data-id="${h.id}" title="Remove habit" aria-label="Remove ${escapeHtml(h.name)}">×</button>
+        </div>
+        <div class="card-stats"><span>Streak <b>${streak}</b></span><span>Best <b>${best}</b></span><span>This week <b>${week}%</b></span></div>
+        ${renderHeatmap(h.id, h.color)}
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.del-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{ e.stopPropagation(); removeHabit(btn.dataset.id); });
+    });
+  }
+
+  function renderAll(){ renderMasthead(); renderChecklist(); renderCards(); }
+
+  // ---------- Sync ----------
+  function setSyncStatus(text, isError){
+    const el = document.getElementById('sync-status');
+    el.textContent = text;
+    el.classList.toggle('error', !!isError);
+  }
+
+  function queueSave(){
+    clearTimeout(saveTimer);
+    setSyncStatus('Saving…');
+    saveTimer = setTimeout(async ()=>{
+      try {
+        await api('/api/data', { method: 'PUT', body: state });
+        setSyncStatus('Saved to your account');
+      } catch (e) {
+        setSyncStatus('Could not save — check your connection', true);
+      }
+    }, 400);
+  }
+
+  // ---------- Habit actions ----------
+  function toggleToday(habitId, rowEl){
+    const t = todayStr();
+    if (!state.completions[habitId]) state.completions[habitId] = {};
+    const wasDone = !!state.completions[habitId][t];
+    if (wasDone) delete state.completions[habitId][t];
+    else state.completions[habitId][t] = true;
+
+    renderAll();
+    queueSave();
+
+    if (!wasDone){
+      const newRow = document.querySelector(`.check-row[data-id="${habitId}"]`);
+      if (newRow){
+        const stamp = document.createElement('span');
+        stamp.className = 'stamp'; stamp.textContent = 'MARKED';
+        newRow.appendChild(stamp);
+        setTimeout(()=> stamp.remove(), 900);
+      }
+    }
+  }
+
+  function addHabit(name, color){
+    const id = 'h' + Date.now() + Math.random().toString(36).slice(2,7);
+    state.habits.push({ id, name, color, createdAt: todayStr() });
+    state.completions[id] = {};
+    renderAll();
+    queueSave();
+  }
+
+  function removeHabit(id){
+    const habit = state.habits.find(h=>h.id===id);
+    if (!habit) return;
+    if (!confirm(`Remove "${habit.name}" and all its history? This can't be undone.`)) return;
+    state.habits = state.habits.filter(h=>h.id!==id);
+    delete state.completions[id];
+    renderAll();
+    queueSave();
+  }
+
+  // ---------- Auth flow ----------
+  const authScreen = document.getElementById('auth-screen');
+  const appScreen = document.getElementById('app-screen');
+  const appFooter = document.getElementById('app-footer');
+  const authForm = document.getElementById('auth-form');
+  const authTitle = document.getElementById('auth-title');
+  const authSubmitBtn = document.getElementById('auth-submit-btn');
+  const nameField = document.getElementById('name-field');
+  const passwordHint = document.getElementById('password-hint');
+  const errorSlot = document.getElementById('auth-error-slot');
+
+  document.querySelectorAll('.auth-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      authMode = tab.dataset.mode;
+      document.querySelectorAll('.auth-tab').forEach(t=>t.classList.toggle('active', t===tab));
+      const isSignup = authMode === 'signup';
+      authTitle.textContent = isSignup ? 'Create Account' : 'Sign In';
+      authSubmitBtn.textContent = isSignup ? 'Create Account' : 'Sign In';
+      nameField.classList.toggle('hidden', !isSignup);
+      passwordHint.classList.toggle('hidden', !isSignup);
+      document.getElementById('auth-password').autocomplete = isSignup ? 'new-password' : 'current-password';
+      errorSlot.innerHTML = '';
+    });
+  });
+
+  authForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    errorSlot.innerHTML = '';
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const name = document.getElementById('auth-name').value.trim();
+
+    authSubmitBtn.disabled = true;
+    authSubmitBtn.textContent = authMode === 'signup' ? 'Creating account…' : 'Signing in…';
+
+    try {
+      const path = authMode === 'signup' ? '/api/signup' : '/api/login';
+      const body = authMode === 'signup' ? { email, password, name } : { email, password };
+      const data = await api(path, { method: 'POST', body, auth: false });
+      localStorage.setItem(TOKEN_KEY, data.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      currentUser = data.user;
+      await enterApp();
+    } catch (err){
+      errorSlot.innerHTML = `<div class="auth-error">${escapeHtml(err.message)}</div>`;
+    } finally {
+      authSubmitBtn.disabled = false;
+      authSubmitBtn.textContent = authMode === 'signup' ? 'Create Account' : 'Sign In';
+    }
+  });
+
+  document.getElementById('signout-btn').addEventListener('click', ()=>{
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    currentUser = null;
+    state = { habits: [], completions: {} };
+    appScreen.classList.add('hidden');
+    appFooter.classList.add('hidden');
+    authScreen.classList.remove('hidden');
+    authForm.reset();
+  });
+
+  async function enterApp(){
+    try {
+      const data = await api('/api/data');
+      state = { habits: data.habits || [], completions: data.completions || {} };
+    } catch (e) {
+      // token invalid/expired — send back to sign in
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      authScreen.classList.remove('hidden');
+      appScreen.classList.add('hidden');
+      appFooter.classList.add('hidden');
+      errorSlot.innerHTML = `<div class="auth-error">Your session expired. Please sign in again.</div>`;
+      return;
+    }
+    authScreen.classList.add('hidden');
+    appScreen.classList.remove('hidden');
+    appFooter.classList.remove('hidden');
+    setSyncStatus('Synced');
+    renderAll();
+  }
+
+  document.getElementById('add-form').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const input = document.getElementById('habit-name');
+    const name = input.value.trim();
+    if (!name) return;
+    addHabit(name, selectedColor);
+    input.value = '';
+  });
+
+  // ---------- Init ----------
+  renderSwatches();
+  const savedToken = localStorage.getItem(TOKEN_KEY);
+  const savedUser = localStorage.getItem(USER_KEY);
+  if (savedToken && savedUser){
+    currentUser = JSON.parse(savedUser);
+    enterApp();
+  }
+
+})();
+</script>
+</body>
+</html>
